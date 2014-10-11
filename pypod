@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+import sys
+import os
+import feedparser
+import urllib2
+
+def get_podcast_url(podcast_idx):
+    with open("pypod.conf", "rb") as fhand:
+        for n, line in enumerate(fhand):
+            name, url = line.split(',')
+            if n == podcast_idx:
+                return url
+    return None
+
+def list_podcasts():
+    with open("pypod.conf", "rb") as fhand:
+        for n, line in enumerate(fhand):
+            name, url = line.split(',')
+            print n, name
+
+def list_episodes(podcast_idx):
+    rss_url = get_podcast_url(podcast_idx)
+    feed = feedparser.parse(rss_url)
+    for n, item in enumerate(feed["items"]):
+        print n, item["title"]
+
+def get_episode(podcast_idx, episode_idx, download_dir):
+    rss_url = get_podcast_url(podcast_idx)
+    feed = feedparser.parse(rss_url)
+    item = feed["items"][episode_idx]
+    mp3_url = filter(lambda i: i["type"] == "audio/mpeg", item["links"])[0]["href"]
+    print "Downloading %s" % item["title"]
+    req = urllib2.urlopen(mp3_url)
+    CHUNK = 16 * 4096
+    with open(os.path.join(download_dir, mp3_url.split('/')[-1]), "wb") as fhand:
+        while True:
+            chunk = req.read(CHUNK)
+            if not chunk: 
+                sys.stdout.write('\n')
+                break
+            fhand.write(chunk)
+            sys.stdout.write('.')
+    print "Finished downloading %s." % item["title"]
+
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        list_podcasts()
+    elif len(sys.argv) == 2:
+        podcast_idx = int(sys.argv[1])
+        list_episodes(podcast_idx)
+    elif len(sys.argv) == 4:
+        podcast_idx = int(sys.argv[1])
+        episode_idx = int(sys.argv[2])
+        dl_dir = sys.argv[3]
+        get_episode(podcast_idx, episode_idx, dl_dir)
+    else:
+        print "Usage: python pypod.py [PODCAST_INDEX [EPISODE_INDEX DOWNLOAD_DIR]]"
