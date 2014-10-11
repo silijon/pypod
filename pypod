@@ -54,4 +54,4 @@ if __name__ == "__main__":
         dl_dir = sys.argv[3]
         get_episode(podcast_idx, episode_idx, dl_dir)
     else:
-        print "Usage: python pypod.py [PODCAST_INDEX [EPISODE_INDEX DOWNLOAD_DIR]]"
+        print "Usage: ./pypod [PODCAST_INDEX [EPISODE_INDEX DOWNLOAD_DIR]]"
